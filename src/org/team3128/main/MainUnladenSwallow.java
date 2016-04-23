@@ -95,7 +95,7 @@ public abstract class MainUnladenSwallow extends MainClass
 	final static int fingerWarningFlashWavelength = 2; // in updateDashboard() ticks
 	boolean fingerWarningShowing = false;
 	
-	boolean intakeUp = true;
+	public boolean intakeUp = true;
 	Thread intakeSmootherThread = null;
 	boolean intakeThreadRunning = false;
 	
@@ -149,8 +149,8 @@ public abstract class MainUnladenSwallow extends MainClass
 
 		SmartDashboard.putData("Lights Chooser", lightsChooser);
 
-		rightJoystick = new Joystick(0);
-		leftJoystick = new Joystick(1);
+		rightJoystick = new Joystick(1);
+		leftJoystick = new Joystick(0);
 
 		lmRightJoy = new ListenerManager(rightJoystick);	
 		lmLeftJoy = new ListenerManager(leftJoystick);	
@@ -233,7 +233,7 @@ public abstract class MainUnladenSwallow extends MainClass
 			compressor.stop();
 			
 			//reset air counter
-			mediumPistonExtensions = 0;
+			// mediumPistonExtensions = 0;
 			microPistonExtensions = 0;
 		});
 		
@@ -254,7 +254,7 @@ public abstract class MainUnladenSwallow extends MainClass
 			}
 			
 			intakeUp = !intakeUp;
-			mediumPistonExtensions += 2;
+			// mediumPistonExtensions += 2;
 		});
 		
 		lmRightJoy.addListener(ControllerExtreme3D.DOWN4, () ->

@@ -43,7 +43,7 @@ public  class MainUnladenSwallowCompetition extends MainUnladenSwallow
 		innerRoller.addMotor(new Talon(5));
 		
 		winch = new MotorGroup();
-		winch.addMotor(new Talon(6));
+		winch.addMotor(new CANTalon(1));
 	
 		//
 		grapplingHook = new Piston(new Solenoid(3), new Solenoid(5),false,false);

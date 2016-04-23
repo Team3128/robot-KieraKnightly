@@ -45,7 +45,7 @@ public  class MainUnladenSwallowPractice extends MainUnladenSwallow
 		innerRoller.invert();
 		
 		winch = new MotorGroup();
-		winch.addMotor(new Talon(4));
+		winch.addMotor(new CANTalon(1));
 	
 		//
 		grapplingHook = new Piston(new Solenoid(2), new Solenoid(5),true,false);
