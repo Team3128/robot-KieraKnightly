@@ -329,7 +329,8 @@ public abstract class MainUnladenSwallow extends MainClass
 		
 		lmLeftJoy.addListener(ControllerExtreme3D.TRIGGERDOWN, () ->
 		{
-			grapplingHook.invertPiston();
+			grapplingHook.setPistonInvert();
+			Log.debug("MUS", "Firing hook");
 		});
 		
 		lmLeftJoy.addListener(ControllerExtreme3D.JOYY, () ->
@@ -406,26 +407,26 @@ public abstract class MainUnladenSwallow extends MainClass
 		
 		SmartDashboard.putString("Current Gear", gearshift.isInHighGear() ? "High" : "Low");
 		
-		SmartDashboard.putNumber("Back Arm Angle:", backArm.getAngle());
+		//SmartDashboard.putNumber("Back Arm Angle:", backArm.getAngle());
 		//Log.debug("MainUnladenSwallow", String.format("Back arm encoder position: %f, angle: %f", backArmMotor.getPosition(), backArm.getAngle()));
 		//SmartDashboard.putNumber("Left Drive Enc Distance:", leftDriveEncoder.getDistanceInDegrees());
 		
 		SmartDashboard.putNumber("Robot Heading", RobotMath.normalizeAngle(drive.getRobotAngle() - robotAngleReadoutOffset));
 //		SmartDashboard.putNumber("Ultrasonic Distance:", ultrasonic.getDistance());
 		
-		if(backArm.getAngle() < -30)
-		{
-			--fingerFlashTimeLeft;
-			if(fingerFlashTimeLeft < 1)
-			{
-				fingerFlashTimeLeft = fingerWarningFlashWavelength;
-				fingerWarningShowing = !fingerWarningShowing;
-			}
-		}
-		else
-		{
-			fingerWarningShowing = false;
-		}
+//		if(backArm.getAngle() < -30)
+//		{
+//			--fingerFlashTimeLeft;
+//			if(fingerFlashTimeLeft < 1)
+//			{
+//				fingerFlashTimeLeft = fingerWarningFlashWavelength;
+//				fingerWarningShowing = !fingerWarningShowing;
+//			}
+//		}
+//		else
+//		{
+//			fingerWarningShowing = false;
+//		}
 		
 		SmartDashboard.putString("Finger", fingerWarningShowing ? "Extended" : "");
 		

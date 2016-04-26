@@ -42,19 +42,18 @@ public  class MainUnladenSwallowPractice extends MainUnladenSwallow
 		
 		innerRoller = new MotorGroup();
 		innerRoller.addMotor(new Victor(3));
-		innerRoller.invert();
 		
 		winch = new MotorGroup();
 		winch.addMotor(new CANTalon(1));
 	
 		//
-		grapplingHook = new Piston(new Solenoid(2), new Solenoid(5),true,false);
-		gearshiftPistons = new Piston(new Solenoid(0), new Solenoid(7),true,false);
+		grapplingHook = new Piston(new Solenoid(0), new Solenoid(4),true,false);
+		gearshiftPistons = new Piston(new Solenoid(3), new Solenoid(5),true,false);
 		
 		gearshift = new TwoSpeedGearshift(true, gearshiftPistons);
 
-		leftIntakePiston = new Piston(new Solenoid(4), new Solenoid(3),true,false);
-		rightIntakePiston = new Piston(new Solenoid(1), new Solenoid(6),true,false);
+		rightIntakePiston = new Piston(new Solenoid(2), new Solenoid(7),true,false);
+		leftIntakePiston = new Piston(new Solenoid(1), new Solenoid(6),true,false);
 		compressor = new Compressor();
 		
 		
