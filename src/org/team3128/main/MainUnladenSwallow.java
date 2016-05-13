@@ -18,9 +18,10 @@ import org.team3128.common.hardware.misc.Piston;
 import org.team3128.common.hardware.misc.TwoSpeedGearshift;
 import org.team3128.common.hardware.motor.MotorGroup;
 import org.team3128.common.listener.ListenerManager;
-import org.team3128.common.listener.controller.ControllerExtreme3D;
-import org.team3128.common.listener.controltype.Always;
-import org.team3128.common.listener.controltype.POV;
+import org.team3128.common.listener.POVValue;
+import org.team3128.common.listener.controllers.ControllerExtreme3D;
+import org.team3128.common.listener.controltypes.Button;
+import org.team3128.common.listener.controltypes.POV;
 import org.team3128.common.multibot.MainClass;
 import org.team3128.common.multibot.RobotTemplate;
 import org.team3128.common.util.GenericSendableChooser;
@@ -46,7 +47,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public abstract class MainUnladenSwallow extends MainClass
 {
 	
-	public ListenerManager listenerManagerExtreme;
+	public ListenerManager lmExtreme;
 	public Joystick /*leftJoystick, */rightJoystick;
 	
 	//joystick object for the operator interface 
@@ -160,7 +161,7 @@ public abstract class MainUnladenSwallow extends MainClass
 		rightJoystick = new Joystick(0);
 		//leftJoystick = new Joystick(1);
 
-		listenerManagerExtreme = new ListenerManager(rightJoystick);	
+		lmExtreme = new ListenerManager(rightJoystick);	
 		
 		//launchpad = new Joystick(2);
 		//listenerManagerLaunchpad = new ListenerManager(launchpad);
@@ -185,13 +186,158 @@ public abstract class MainUnladenSwallow extends MainClass
 		camera.setQuality(10);
 		camera.startAutomaticCapture("cam0");
 		
-		robotTemplate.addListenerManager(listenerManagerExtreme);
+		robotTemplate.addListenerManager(lmExtreme);
 		//robotTemplate.addListenerManager(listenerManagerLaunchpad);	
 		
 		//must run after subclass constructors
 		drive = new TankDrive(leftMotors, rightMotors, leftDriveEncoder, rightDriveEncoder, 7.65 * Length.in * Math.PI, DRIVE_WHEELS_GEAR_RATIO, 28.33 * Length.in);
 
 		gearshift.shiftToLow();
+		
+		//-----------------------------------------------------------
+		// Teleop listeners
+		//-----------------------------------------------------------
+		lmExtreme.nameControl(ControllerExtreme3D.TWIST, "JoyTurn");
+		lmExtreme.nameControl(ControllerExtreme3D.JOYY, "JoyForwardBackward");
+		lmExtreme.nameControl(ControllerExtreme3D.THROTTLE, "DriveThrottle");
+		
+		lmExtreme.nameControl(new Button(4), "ClearStickyFaults");
+		lmExtreme.nameControl(new Button(2), "Shift");
+		lmExtreme.nameControl(new Button(8), "StartCompressor");
+		lmExtreme.nameControl(new Button(9), "StopCompressor");
+		lmExtreme.nameControl(new Button(10), "RaiseLowerIntake");
+		lmExtreme.nameControl(new Button(7), "ResetHeadingReadout");
+		lmExtreme.nameControl(new Button(5), "FingerExtend");
+		lmExtreme.nameControl(new Button(6), "RaiseLowerIntake");
+		lmExtreme.nameControl(new Button(11), "ZeroFinger");
+		lmExtreme.nameControl(new Button(12), "RemoveFingerSoftLimit");
+
+		lmExtreme.nameControl(new POV(0), "IntakePOV");
+
+		
+		lmExtreme.addMultiListener(() ->
+		{
+			double joyX = .5 * lmExtreme.getAxis("JoyTurn");
+			double joyY = lmExtreme.getAxis("JoyForwardBackward");
+			
+			drive.arcadeDrive(joyX, joyY, -lmExtreme.getAxis("DriveThrottle"), true);
+		}, "JoyTurn", "JoyForwardBackward", "DriveThrottle");
+		
+		lmExtreme.addButtonDownListener("ClearStickyFaults", () -> powerDistPanel.clearStickyFaults());
+		
+		lmExtreme.addButtonDownListener("Shift", () -> 
+		{
+			gearshift.shiftToOtherGear();
+		
+		});
+		
+		lmExtreme.addButtonDownListener("StartCompressor", () -> 
+		{
+			compressor.start();
+		});
+		
+		lmExtreme.addButtonDownListener("StopCompressor", () -> 
+		{
+			compressor.stop();
+		});
+		
+		lmExtreme.addButtonDownListener("RaiseLowerIntake", () ->
+		{
+			if(intakeUp)
+			{
+
+				leftIntakePiston.setPistonOff();
+				rightIntakePiston.setPistonOff();
+			}
+			
+			
+			else
+			{
+				
+				leftIntakePiston.setPistonOn();
+				rightIntakePiston.setPistonOn();
+			}
+			
+			intakeUp = !intakeUp;
+			mediumPistonExtensions += 2;
+		});
+		
+		lmExtreme.addButtonDownListener("ResetHeadingReadout", () ->
+		{
+			robotAngleReadoutOffset = drive.getRobotAngle();
+		});
+		
+		lmExtreme.addButtonDownListener("FingerExtend", () -> {
+			backArmMotor.set(.5);	
+		});
+		
+		lmExtreme.addButtonDownListener("FingerRetract", () -> {
+			backArmMotor.set(-.5);	
+		});
+		
+		lmExtreme.addButtonUpListener("FingerExtend", () -> {
+			backArmMotor.set(0);	
+		});
+
+		lmExtreme.addButtonUpListener("FingerRetract", () -> {
+			backArmMotor.set(0);	
+		});
+		
+		lmExtreme.addButtonDownListener("ZeroFinger", () -> {
+			backArmMotor.setEncPosition(0);	
+			backArmMotor.enableForwardSoftLimit(true);
+		});
+
+		lmExtreme.addButtonDownListener("RemoveFingerSoftLimit", () -> {
+			backArmMotor.enableForwardSoftLimit(false);
+		});
+		
+		lmExtreme.addListener("IntakePOV", (POVValue newValue) -> 
+		{
+			switch(newValue.getDirectionValue())
+			{
+			case 0:
+				intakeSpinner.setTarget(IntakeState.STOPPED.motorPower);
+				innerRoller.setTarget(0);
+				
+				
+				innerRollerCurrentlyIntaking = false;
+				break;
+			case 1:
+			case 2:
+			case 8:
+				intakeSpinner.setTarget(IntakeState.OUTTAKE.motorPower);
+				
+				innerRoller.setTarget(-.7);
+			
+				
+				innerRollerCurrentlyIntaking = false;
+				innerRollerBallAtMaxPos = false;
+				break;
+			case 4:
+			case 5:
+			case 6:
+				intakeSpinner.setTarget(IntakeState.INTAKE.motorPower);
+				
+				if(innerRollerStopEnabled && innerRollerBallAtMaxPos)
+				{
+					innerRoller.setTarget(0);
+				}
+				else
+				{
+					innerRoller.setTarget(.7);
+				}
+				innerRollerCurrentlyIntaking = true;
+
+				break;
+			}
+
+			
+
+		});
+		
+		
+
 		
         Log.info("MainUnladenSwallow", "Activating the Unladen Swallow");
         Log.info("MainUnladenSwallow", "...but which one, an African or a European?");
@@ -215,230 +361,6 @@ public abstract class MainUnladenSwallow extends MainClass
 	
 	protected void initializeTeleop()
 	{	
-		//-----------------------------------------------------------
-		// Drive code, on Logitech Extreme3D joystick
-		//-----------------------------------------------------------
-		listenerManagerExtreme.addListener(() ->
-		{
-			double joyX = .5 * listenerManagerExtreme.getRawAxis(ControllerExtreme3D.TWIST);
-			double joyY = listenerManagerExtreme.getRawAxis(ControllerExtreme3D.JOYY);
-			
-			drive.arcadeDrive(joyX, joyY, -listenerManagerExtreme.getRawAxis(ControllerExtreme3D.THROTTLE), true);
-		}, ControllerExtreme3D.TRIGGERUP, ControllerExtreme3D.TWIST, ControllerExtreme3D.JOYY, ControllerExtreme3D.THROTTLE, ControllerExtreme3D.TRIGGERDOWN);
-		
-		listenerManagerExtreme.addListener(ControllerExtreme3D.DOWN7, () ->
-		{
-			powerDistPanel.clearStickyFaults();
-		});
-		
-		listenerManagerExtreme.addListener(ControllerExtreme3D.DOWN2, () -> 
-		{
-			gearshift.shiftToOtherGear();
-		
-		});
-		
-		listenerManagerExtreme.addListener(ControllerExtreme3D.DOWN8, () -> 
-		{
-			compressor.start();
-		});
-		
-		listenerManagerExtreme.addListener(ControllerExtreme3D.DOWN9, () -> 
-		{
-			compressor.stop();
-			
-			//reset air counter
-			mediumPistonExtensions = 0;
-			microPistonExtensions = 0;
-		});
-		
-		listenerManagerExtreme.addListener(ControllerExtreme3D.DOWN10, () ->
-		{
-			if(intakeUp)
-			{
-
-				leftIntakePiston.setPistonOff();
-				rightIntakePiston.setPistonOff();
-			}
-				
-//				if(intakeThreadRunning)
-//				{
-//					intakeSmootherThread.interrupt();
-//				}
-//				
-//				Log.debug("IntakeSmootherThread", "Starting smooth intake lowering");
-//				
-//				
-//				
-//				// if we just set the pistons to off, it slams the intake down really hard.  
-//				//instead, we try to let it coast for most of the way
-//				intakeSmootherThread = new Thread (() -> 
-//				{
-//					leftIntakePiston.setPistonOff();
-//					rightIntakePiston.setPistonOff();
-//					
-//					try
-//					{
-//						Thread.sleep(5);
-//					} 
-//					catch (InterruptedException e) 
-//					{
-//						return;
-//					}
-//					
-//					leftIntakePiston.unlockPiston();
-//					rightIntakePiston.unlockPiston();
-//					
-//					try
-//					{
-//						Thread.sleep(1000);
-//					} 
-//					catch (InterruptedException e) 
-//					{
-//						return;
-//					}
-//					
-//					leftIntakePiston.setPistonOff();
-//					rightIntakePiston.setPistonOff();
-//						
-//					intakeThreadRunning = false;
-//				});
-//				
-//				intakeThreadRunning = true;
-//				intakeSmootherThread.start();
-			
-			
-			else
-			{
-//				if(intakeThreadRunning)
-//				{
-//					intakeSmootherThread.interrupt();
-//					
-//					//shouldn't need to join the thread, it will eventually close itself
-//					
-//				}
-				
-				leftIntakePiston.setPistonOn();
-				rightIntakePiston.setPistonOn();
-			}
-			
-			intakeUp = !intakeUp;
-			mediumPistonExtensions += 2;
-		});
-		
-		listenerManagerExtreme.addListener(ControllerExtreme3D.DOWN7, () ->
-		{
-			robotAngleReadoutOffset = drive.getRobotAngle();
-		});
-		
-		listenerManagerExtreme.addListener(() -> 
-		{
-			intakeSpinner.setTarget(IntakeState.OUTTAKE.motorPower);
-			
-			innerRoller.setTarget(-.7);
-		
-			
-			innerRollerCurrentlyIntaking = false;
-			innerRollerBallAtMaxPos = false;
-			
-
-		}, new POV(0, 8), new POV(0, 1), new POV(0, 2));
-		
-		listenerManagerExtreme.addListener(() -> 
-		{
-			intakeSpinner.setTarget(IntakeState.STOPPED.motorPower);
-			innerRoller.setTarget(0);
-			
-			
-			innerRollerCurrentlyIntaking = false;
-		}, new POV(0, 0));
-		
-		listenerManagerExtreme.addListener(() -> 
-		{
-			intakeSpinner.setTarget(IntakeState.INTAKE.motorPower);
-			
-			if(innerRollerStopEnabled && innerRollerBallAtMaxPos)
-			{
-				innerRoller.setTarget(0);
-			}
-			else
-			{
-				innerRoller.setTarget(.7);
-			}
-			innerRollerCurrentlyIntaking = true;
-
-
-
-		}, new POV(0, 4), new POV(0, 5), new POV(0, 6));
-		
-		listenerManagerExtreme.addListener(ControllerExtreme3D.DOWN5, () -> {
-			backArmMotor.set(.5);	
-		});
-		
-		listenerManagerExtreme.addListener(ControllerExtreme3D.DOWN6, () -> {
-			backArmMotor.set(-.5);	
-		});
-		
-		listenerManagerExtreme.addListener(ControllerExtreme3D.UP6, () -> {
-			backArmMotor.set(0);	
-		});
-
-		listenerManagerExtreme.addListener(ControllerExtreme3D.UP5, () -> {
-			backArmMotor.set(0);	
-		});
-		
-		listenerManagerExtreme.addListener(ControllerExtreme3D.DOWN11, () -> {
-			backArmMotor.setEncPosition(0);	
-			backArmMotor.enableForwardSoftLimit(true);
-		});
-
-		listenerManagerExtreme.addListener(ControllerExtreme3D.DOWN12, () -> {
-			backArmMotor.enableForwardSoftLimit(false);
-		});
-		
-		
-		listenerManagerExtreme.addListener(ControllerExtreme3D.DOWN3, () -> innerRollerStopEnabled = true);
-		listenerManagerExtreme.addListener(ControllerExtreme3D.DOWN4, () -> innerRollerStopEnabled = false);
-
-		
-		listenerManagerExtreme.addListener(Always.instance, () ->
-		{
-			if(innerRollerStopEnabled && innerRollerCurrentlyIntaking)
-			{
-//				if(distanceSensor.getRaw() > INTAKE_BALL_DISTANCE_THRESHOLD)
-//				{
-//					innerRoller.setTarget(0);
-//					
-//					innerRollerCurrentlyIntaking = false;
-//					innerRollerBallAtMaxPos = true;
-//				}
-			}
-		});
-		//-----------------------------------------------------------------
-		//joystick chooser listeners
-		//-----------------------------------------------------------------
-		
-		//switch should be plugged in to pin 3.0 on the right side of the LaunchPad
-		//active high
-//		listenerManagerLaunchpad.addListener(new Button(8, true), () ->
-//		{
-//			listenerManagerExtreme.setJoysticks(leftJoystick);
-//		});
-//		
-//		listenerManagerLaunchpad.addListener(new Button(8, false), () ->
-//		{
-//			listenerManagerExtreme.setJoysticks(rightJoystick);
-//		});
-		
-//		listenerManagerExtreme.addListener(Always.instance, () -> {
-//			int red = RobotMath.clampInt(RobotMath.floor_double_int(255 * (powerDistPanel.getTotalCurrent() / 30.0)), 0, 255);
-//			int green = 255 - red;
-//			
-//			LightsColor color = LightsColor.new8Bit(red, green, 0);
-//			lights.setColor(color);
-//			
-//			//Log.debug("ArmAngle", armRotateEncoder.getAngle() + " degrees");
-//		});
-
 		backArm.setForTeleop();
 		backArmMotor.clearIAccum();
 		backArmMotor.set(0);
@@ -479,13 +401,7 @@ public abstract class MainUnladenSwallow extends MainClass
 	protected void updateDashboard()
 	{
 		//SmartDashboard.putNumber("Total Current: ", powerDistPanel.getTotalCurrent());
-		
-		double airLeft /* cm3 */ = TOTAL_STARTING_AIR - (microPistonExtensions * AIR_FOR_MICRO_PISTON) - (mediumPistonExtensions * AIR_FOR_MEDIUM_PISTON);
-		
-		//SmartDashboard.putNumber("Air Left (cm³):", airLeft);
-		//SmartDashboard.putNumber("Shifts Left:", Math.floor(airLeft / AIR_FOR_MICRO_PISTON));
-		//SmartDashboard.putNumber("Intake Movements Left:", Math.floor(airLeft / AIR_FOR_MEDIUM_PISTON));
-		
+				
 		SmartDashboard.putString("Current Gear", gearshift.isInHighGear() ? "High" : "Low");
 		
 		SmartDashboard.putNumber("Back Arm Angle:", backArm.getAngle());
