@@ -41,12 +41,15 @@ public  class MainUnladenSwallowCompetition extends MainUnladenSwallow
 		
 		innerRoller = new MotorGroup();
 		innerRoller.addMotor(new Talon(5));
+		
+		winch = new MotorGroup();
+		winch.addMotor(new Talon(6));
 	
 		//
-		leftGearshiftPiston = new Piston(new Solenoid(3), new Solenoid(5),false,false);
-		rightGearshiftPiston = new Piston(new Solenoid(2), new Solenoid(6),false,false);
+		grapplingHook = new Piston(new Solenoid(3), new Solenoid(5),false,false);
+		gearshiftPistons = new Piston(new Solenoid(2), new Solenoid(6),false,false);
 		
-		gearshift = new TwoSpeedGearshift(true, leftGearshiftPiston, rightGearshiftPiston);
+		gearshift = new TwoSpeedGearshift(true, gearshiftPistons);
 
 		leftIntakePiston = new Piston(new Solenoid(1), new Solenoid(4),true,false);
 		rightIntakePiston = new Piston(new Solenoid(0), new Solenoid(7),true,false);

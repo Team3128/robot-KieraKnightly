@@ -31,6 +31,7 @@ public  class MainUnladenSwallowPractice extends MainUnladenSwallow
 		leftMotors.addMotor(new Talon(8));
 		leftMotors.addMotor(new Talon(9));
 		leftMotors.invert();		
+		leftMotors.setSpeedScalar(1.02);
 		
 		rightMotors = new MotorGroup();
 		rightMotors.addMotor(new Talon(0));
@@ -42,12 +43,15 @@ public  class MainUnladenSwallowPractice extends MainUnladenSwallow
 		innerRoller = new MotorGroup();
 		innerRoller.addMotor(new Victor(3));
 		innerRoller.invert();
+		
+		winch = new MotorGroup();
+		winch.addMotor(new Talon(4));
 	
 		//
-		leftGearshiftPiston = new Piston(new Solenoid(2), new Solenoid(5),true,false);
-		rightGearshiftPiston = new Piston(new Solenoid(0), new Solenoid(7),true,false);
+		grapplingHook = new Piston(new Solenoid(2), new Solenoid(5),true,false);
+		gearshiftPistons = new Piston(new Solenoid(0), new Solenoid(7),true,false);
 		
-		gearshift = new TwoSpeedGearshift(true, leftGearshiftPiston, rightGearshiftPiston);
+		gearshift = new TwoSpeedGearshift(true, gearshiftPistons);
 
 		leftIntakePiston = new Piston(new Solenoid(4), new Solenoid(3),true,false);
 		rightIntakePiston = new Piston(new Solenoid(1), new Solenoid(6),true,false);

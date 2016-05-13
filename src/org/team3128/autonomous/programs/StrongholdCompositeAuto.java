@@ -26,13 +26,20 @@ public class StrongholdCompositeAuto extends CommandGroup {
 		{
 			Log.info("StrongholdCompositeAuto", "Running defense crosser: " + defenseCrosser.getClass().getCanonicalName());
 			addSequential(defenseCrosser);
+			Log.info("StrongholdCompositeAuto", "Added Defense Sequential");
 						
 			if(scorerClass == null)
 			{
 				//make the robot fit for driving
 
 				//Jamie please fix when you read this, portcullis was changed
+				/*
+				if (defenseCrosser.getClass().getCanonicalName() == "org.team3128.autonomous.defensecrossers.CmdGoAcrossPortcullis") {
+					addSequential(robot.drive.new CmdInPlaceTurn(180, 4000, Direction.LEFT));
+				}
+				*/
 				addSequential(robot.drive.new CmdMoveForward(50 * Length.cm, 4000, .5));
+				
 				//addSequential(robot.drive.new CmdInPlaceTurn(180, 4000, Direction.LEFT));
 			}
 			else

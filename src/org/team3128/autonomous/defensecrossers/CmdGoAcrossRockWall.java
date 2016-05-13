@@ -1,5 +1,6 @@
 package org.team3128.autonomous.defensecrossers;
 
+import org.team3128.common.util.Log;
 import org.team3128.common.util.units.Length;
 import org.team3128.main.MainUnladenSwallow;
 
@@ -25,6 +26,8 @@ public class CmdGoAcrossRockWall extends CommandGroup {
 	 public CmdGoAcrossRockWall(MainUnladenSwallow robot)
 	 {
 		 addSequential(robot.gearshift.new CmdUpshift());
-		 addSequential(robot.drive.new CmdMoveForward(700 * Length.cm, 5000, .9));
+		 Log.info("CmdGoAcrossRockWall", "Driving...");
+		 addSequential(robot.drive.new CmdMoveForward(400 * Length.cm, 4000, .9));
+		 Log.info("CmdGoAcrossRockWall", "Drove.");
 	 }
 }

@@ -1,6 +1,8 @@
 package org.team3128.autonomous.scorers;
 
 import org.team3128.autonomous.StrongholdStartingPosition;
+import org.team3128.autonomous.commands.CmdMoveRollers;
+import org.team3128.autonomous.commands.CmdSetIntake;
 import org.team3128.common.autonomous.primitives.CmdLambda;
 import org.team3128.common.autonomous.primitives.CmdRunInParallel;
 import org.team3128.common.util.enums.Direction;
@@ -22,7 +24,7 @@ public class CmdScoreVision extends CommandGroup
 	{
 		this.robot = robot;
 		
-		addSequential(new CmdRunInParallel(robot.new CmdSetIntake(false), robot.gearshift.new CmdDownshift()));
+		addSequential(new CmdRunInParallel(new CmdSetIntake(robot, false), robot.gearshift.new CmdDownshift()));
 		 
 		 switch(startingPosition)
 		 {
@@ -31,7 +33,7 @@ public class CmdScoreVision extends CommandGroup
 			 addSequential(robot.drive.new CmdInPlaceTurn(45, 2000, Direction.RIGHT));
 			 addSequential(new CmdAlignToLowGoal(robot, 1280 / 2)); //line up the goal in the center
 			 addSequential(robot.drive.new CmdMoveForward(10 * Length.ft, 7000, .45));
-			 addSequential(robot.new CmdMoveRollers(3000,true));
+			 addSequential(new CmdMoveRollers(robot, 3000,true));
 			 break;
 		 case CENTER_LEFT:
 			 addSequential(robot.drive.new CmdMoveForward(250 * Length.cm, 5000, .3));

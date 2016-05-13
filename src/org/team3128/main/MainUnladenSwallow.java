@@ -36,7 +36,6 @@ import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PowerDistributionPanel;
-import edu.wpi.first.wpilibj.command.Command;
 import edu.wpi.first.wpilibj.command.CommandGroup;
 import edu.wpi.first.wpilibj.command.Scheduler;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -47,8 +46,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public abstract class MainUnladenSwallow extends MainClass
 {
 	
-	public ListenerManager lmExtreme;
-	public Joystick /*leftJoystick, */rightJoystick;
+	public ListenerManager lmLeftJoy, lmRightJoy;
+	public Joystick leftJoystick, rightJoystick;
 	
 	//joystick object for the operator interface 
 	//public Joystick launchpad;
@@ -59,7 +58,8 @@ public abstract class MainUnladenSwallow extends MainClass
 	public MotorGroup rightMotors;
 	public MotorGroup intakeSpinner;
 	public MotorGroup innerRoller;
-
+	public MotorGroup winch;
+	
 	public QuadratureEncoderLink leftDriveEncoder;
 	public QuadratureEncoderLink rightDriveEncoder;
 	public PowerDistributionPanel powerDistPanel;
@@ -69,22 +69,15 @@ public abstract class MainUnladenSwallow extends MainClass
 	
 	public TankDrive drive;
 	
-	//public MaxSonar ultrasonic;
 	public PWMLights lights;
 	
 	public TwoSpeedGearshift gearshift;
 		
 	
-	Piston leftGearshiftPiston, rightGearshiftPiston;
-	Piston leftIntakePiston, rightIntakePiston;
+	public Piston gearshiftPistons;
+	public Piston leftIntakePiston, rightIntakePiston;
+	public Piston grapplingHook;
 	Compressor compressor;
-	
-	//Air tracker code
-	final static int NUMBER_OF_AIR_TANKS = 2;
-	final static double AIR_PER_AIR_TANK = 574 ; //cm3
-	final static double AIR_FOR_MICRO_PISTON = AIR_PER_AIR_TANK / 140; //140 extensions/retractions per tank at 40 psi
-	final static double AIR_FOR_MEDIUM_PISTON = AIR_PER_AIR_TANK / 40; //40 extensions/retractions per tank at 40 psi
-	final static double TOTAL_STARTING_AIR = NUMBER_OF_AIR_TANKS * AIR_PER_AIR_TANK;
 	
 	
 	final static public double STRAIGHT_DRIVE_KP = .0005;
@@ -159,21 +152,12 @@ public abstract class MainUnladenSwallow extends MainClass
 		SmartDashboard.putData("Lights Chooser", lightsChooser);
 
 		rightJoystick = new Joystick(0);
-		//leftJoystick = new Joystick(1);
+		leftJoystick = new Joystick(1);
 
-		lmExtreme = new ListenerManager(rightJoystick);	
-		
+		lmRightJoy = new ListenerManager(rightJoystick);	
+		lmLeftJoy = new ListenerManager(leftJoystick);	
+
 		//launchpad = new Joystick(2);
-		//listenerManagerLaunchpad = new ListenerManager(launchpad);
-//		try
-//		{
-//			ultrasonic = new MaxSonar(9, MaxSonar.Resolution.MM, SerialPort.Port.kOnboard);
-//			ultrasonic.setAutoPing(true);
-//		}
-//		catch(Exception ex)
-//		{
-//			ex.printStackTrace();
-//		}
 		
 	}
 
@@ -186,62 +170,73 @@ public abstract class MainUnladenSwallow extends MainClass
 		camera.setQuality(10);
 		camera.startAutomaticCapture("cam0");
 		
-		robotTemplate.addListenerManager(lmExtreme);
+		robotTemplate.addListenerManager(lmRightJoy);
+		robotTemplate.addListenerManager(lmLeftJoy);
 		//robotTemplate.addListenerManager(listenerManagerLaunchpad);	
 		
 		//must run after subclass constructors
 		drive = new TankDrive(leftMotors, rightMotors, leftDriveEncoder, rightDriveEncoder, 7.65 * Length.in * Math.PI, DRIVE_WHEELS_GEAR_RATIO, 28.33 * Length.in);
 
 		gearshift.shiftToLow();
+		lights.executeSequence(MainLightsTest.lightsRainbowSequence);
+		grapplingHook.setPistonOff();
+
+		//workaround for autonomous
+		Scheduler.getInstance().add(new StrongholdCompositeAuto(this));
+		
 		
 		//-----------------------------------------------------------
 		// Teleop listeners
 		//-----------------------------------------------------------
-		lmExtreme.nameControl(ControllerExtreme3D.TWIST, "JoyTurn");
-		lmExtreme.nameControl(ControllerExtreme3D.JOYY, "JoyForwardBackward");
-		lmExtreme.nameControl(ControllerExtreme3D.THROTTLE, "DriveThrottle");
+		lmRightJoy.nameControl(ControllerExtreme3D.TWIST, "JoyTurn");
+		lmRightJoy.nameControl(ControllerExtreme3D.JOYY, "JoyForwardBackward");
+		lmRightJoy.nameControl(ControllerExtreme3D.THROTTLE, "DriveThrottle");
 		
-		lmExtreme.nameControl(new Button(4), "ClearStickyFaults");
-		lmExtreme.nameControl(new Button(2), "Shift");
-		lmExtreme.nameControl(new Button(8), "StartCompressor");
-		lmExtreme.nameControl(new Button(9), "StopCompressor");
-		lmExtreme.nameControl(new Button(10), "RaiseLowerIntake");
-		lmExtreme.nameControl(new Button(7), "ResetHeadingReadout");
-		lmExtreme.nameControl(new Button(5), "FingerExtend");
-		lmExtreme.nameControl(new Button(6), "RaiseLowerIntake");
-		lmExtreme.nameControl(new Button(11), "ZeroFinger");
-		lmExtreme.nameControl(new Button(12), "RemoveFingerSoftLimit");
+		lmRightJoy.nameControl(new Button(4), "ClearStickyFaults");
+		lmRightJoy.nameControl(new Button(2), "Shift");
+		lmRightJoy.nameControl(new Button(8), "StartCompressor");
+		lmRightJoy.nameControl(new Button(9), "StopCompressor");
+		lmRightJoy.nameControl(new Button(10), "RaiseLowerIntake");
+		lmRightJoy.nameControl(new Button(7), "ResetHeadingReadout");
+		lmRightJoy.nameControl(new Button(5), "FingerExtend");
+		lmRightJoy.nameControl(new Button(6), "RaiseLowerIntake");
+		lmRightJoy.nameControl(new Button(11), "ZeroFinger");
+		lmRightJoy.nameControl(new Button(12), "RemoveFingerSoftLimit");
+		
+		lmLeftJoy.nameControl(new Button(1), "FireHook");
+		lmLeftJoy.nameControl(ControllerExtreme3D.JOYY, "Winch");
+		
+        Log.info("MainUnladenSwallow", "Activating the Unladen Swallow");
+        Log.info("MainUnladenSwallow", "...but which one, an African or a European?");
+	
 
-		lmExtreme.nameControl(new POV(0), "IntakePOV");
+		lmRightJoy.nameControl(new POV(0), "IntakePOV");
 
 		
-		lmExtreme.addMultiListener(() ->
+		lmRightJoy.addMultiListener(() ->
 		{
-			double joyX = .5 * lmExtreme.getAxis("JoyTurn");
-			double joyY = lmExtreme.getAxis("JoyForwardBackward");
+			double joyX = .5 * lmRightJoy.getAxis("JoyTurn");
+			double joyY = lmRightJoy.getAxis("JoyForwardBackward");
 			
-			drive.arcadeDrive(joyX, joyY, -lmExtreme.getAxis("DriveThrottle"), true);
+			drive.arcadeDrive(joyX, joyY, -lmRightJoy.getAxis("DriveThrottle"), true);
 		}, "JoyTurn", "JoyForwardBackward", "DriveThrottle");
 		
-		lmExtreme.addButtonDownListener("ClearStickyFaults", () -> powerDistPanel.clearStickyFaults());
 		
-		lmExtreme.addButtonDownListener("Shift", () -> 
-		{
-			gearshift.shiftToOtherGear();
+		lmRightJoy.addButtonDownListener("ClearStickyFaults", () -> powerDistPanel.clearStickyFaults());
 		
-		});
+		lmRightJoy.addButtonDownListener("Shift", () -> gearshift.shiftToOtherGear());
 		
-		lmExtreme.addButtonDownListener("StartCompressor", () -> 
+		lmRightJoy.addButtonDownListener("StartCompressor", () -> 
 		{
 			compressor.start();
 		});
 		
-		lmExtreme.addButtonDownListener("StopCompressor", () -> 
+		lmRightJoy.addButtonDownListener("StopCompressor", () -> 
 		{
 			compressor.stop();
 		});
 		
-		lmExtreme.addButtonDownListener("RaiseLowerIntake", () ->
+		lmRightJoy.addButtonDownListener("RaiseLowerIntake", () ->
 		{
 			if(intakeUp)
 			{
@@ -249,8 +244,6 @@ public abstract class MainUnladenSwallow extends MainClass
 				leftIntakePiston.setPistonOff();
 				rightIntakePiston.setPistonOff();
 			}
-			
-			
 			else
 			{
 				
@@ -262,37 +255,48 @@ public abstract class MainUnladenSwallow extends MainClass
 			mediumPistonExtensions += 2;
 		});
 		
-		lmExtreme.addButtonDownListener("ResetHeadingReadout", () ->
+		lmRightJoy.addButtonDownListener("ResetHeadingReadout", () ->
 		{
 			robotAngleReadoutOffset = drive.getRobotAngle();
 		});
 		
-		lmExtreme.addButtonDownListener("FingerExtend", () -> {
+		lmRightJoy.addButtonDownListener("FingerExtend", () -> {
 			backArmMotor.set(.5);	
 		});
 		
-		lmExtreme.addButtonDownListener("FingerRetract", () -> {
+		lmRightJoy.addButtonDownListener("FingerRetract", () -> {
 			backArmMotor.set(-.5);	
 		});
 		
-		lmExtreme.addButtonUpListener("FingerExtend", () -> {
+		lmRightJoy.addButtonUpListener("FingerExtend", () -> {
 			backArmMotor.set(0);	
 		});
 
-		lmExtreme.addButtonUpListener("FingerRetract", () -> {
+		lmRightJoy.addButtonUpListener("FingerRetract", () -> {
 			backArmMotor.set(0);	
 		});
 		
-		lmExtreme.addButtonDownListener("ZeroFinger", () -> {
+		lmRightJoy.addButtonDownListener("ZeroFinger", () -> {
+
 			backArmMotor.setEncPosition(0);	
 			backArmMotor.enableForwardSoftLimit(true);
 		});
 
-		lmExtreme.addButtonDownListener("RemoveFingerSoftLimit", () -> {
+		lmRightJoy.addButtonDownListener("RemoveFingerSoftLimit", () -> {
 			backArmMotor.enableForwardSoftLimit(false);
 		});
 		
-		lmExtreme.addListener("IntakePOV", (POVValue newValue) -> 
+		lmLeftJoy.addButtonDownListener("FireHook", () ->
+		{
+			grapplingHook.invertPiston();
+		});
+		
+		lmLeftJoy.addListener("Winch", (double value) ->
+		{
+			winch.setTarget(value);
+		});
+		
+		lmRightJoy.addListener("IntakePOV", (POVValue newValue) -> 
 		{
 			switch(newValue.getDirectionValue())
 			{
@@ -335,7 +339,6 @@ public abstract class MainUnladenSwallow extends MainClass
 			
 
 		});
-		
 		
 
 		
@@ -401,7 +404,6 @@ public abstract class MainUnladenSwallow extends MainClass
 	protected void updateDashboard()
 	{
 		//SmartDashboard.putNumber("Total Current: ", powerDistPanel.getTotalCurrent());
-				
 		SmartDashboard.putString("Current Gear", gearshift.isInHighGear() ? "High" : "Low");
 		
 		SmartDashboard.putNumber("Back Arm Angle:", backArm.getAngle());
@@ -431,118 +433,6 @@ public abstract class MainUnladenSwallow extends MainClass
 		if(getRobotMode() != RobotMode.AUTONOMOUS)
 		{
 			lights.setColor(lightsChooser.getSelected());	
-		}
-		
-	}
-	
-public class CmdMoveRollers extends Command {
-
-    	int _msec;
-    	long startTime;
-    	//dir is for direction, false is in, true is out
-    	boolean dir;
-    	
-    	public CmdMoveRollers(int msec, boolean dir){
-    		_msec = msec;
-    		dir = this.dir;
-    	}
-    	protected void initialize()
-        {
-    		startTime = System.currentTimeMillis();
-    		if(dir){
-    			innerRoller.setTarget(-0.3);
-    			intakeSpinner.setTarget(-0.3);
-    		}else{
-    			innerRoller.setTarget(0.3);
-    			intakeSpinner.setTarget(0.3);
-    		}
-        }
-
-        // Called repeatedly when this Command is scheduled to run
-        protected void execute()
-        {
-        	if(dir){
-    			innerRoller.setTarget(-0.3);
-    			intakeSpinner.setTarget(-0.3);
-    		}else{
-    			innerRoller.setTarget(0.3);
-    			intakeSpinner.setTarget(0.3);
-    		}
-        }
-
-        // Make this return true when this Command no longer needs to run execute()
-        protected boolean isFinished()
-        {
-        	if(startTime > _msec){
-        		return true;
-        	}
-            return false;
-        }
-
-        // Called once after isFinished returns true
-        protected void end()
-        {
-        	innerRoller.setTarget(0);
-        	intakeSpinner.setTarget(0);
-        }
-
-        // Called when another command which requires one or more of the same
-        // subsystems is scheduled to run
-        protected void interrupted()
-        {
-        	
-        }
-    }
-	/**
-	 * Command to set the position of the ball intake.
-	 * @author Jamie
-	 *
-	 */
-	public class CmdSetIntake extends Command
-	{
-		boolean setToUp;
-		
-		
-		public CmdSetIntake(boolean up)
-		{
-			setToUp = up;
-		}
-
-		@Override
-		protected void initialize()
-		{
-			
-		}
-
-		@Override
-		protected void execute() {
-			if(setToUp)
-			{
-				leftIntakePiston.setPistonOn();
-				rightIntakePiston.setPistonOn();
-			}
-			else
-			{
-				leftIntakePiston.setPistonOff();
-				rightIntakePiston.setPistonOff();
-			}
-			
-			intakeUp = setToUp;
-		}
-
-		@Override
-		protected boolean isFinished() {
-			return timeSinceInitialized() > 1;
-		}
-
-		@Override
-		protected void end() {
-			
-		}
-
-		@Override
-		protected void interrupted() {
-			
 		}
 		
 	}
