@@ -38,15 +38,18 @@ public  class MainUnladenSwallowCompetition extends MainUnladenSwallow
 		intakeSpinner = new MotorGroup();
 		intakeSpinner.addMotor(new Talon(0));
 		intakeSpinner.invert();
+
 		
 		innerRoller = new MotorGroup();
 		innerRoller.addMotor(new Talon(5));
+		innerRoller.invert();
 		
 		winch = new MotorGroup();
 		winch.addMotor(new CANTalon(1));
 	
 		//
 		grapplingHook = new Piston(new Solenoid(3), new Solenoid(5),false,false);
+		grapplingHook.invertPiston();
 		gearshiftPistons = new Piston(new Solenoid(2), new Solenoid(6),false,false);
 		
 		gearshift = new TwoSpeedGearshift(true, gearshiftPistons);

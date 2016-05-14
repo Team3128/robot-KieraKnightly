@@ -34,13 +34,13 @@ public class StrongholdCompositeAuto extends CommandGroup {
 
 				//Jamie please fix when you read this, portcullis was changed
 				
-				/*
-				if (defenseCrosser.getClass().getCanonicalName() == "org.team3128.autonomous.defensecrossers.CmdGoAcrossPortcullis") {
-					addSequential(robot.drive.new CmdInPlaceTurn(180, 0, Direction.LEFT));
-				}
-				*/
+				// Temp competiton fix @ronak at Worlds
 				
-				addSequential(robot.drive.new CmdMoveForward(50 * Length.cm, 4000, .5));
+				if (defenseCrosser.getClass().getCanonicalName() != "org.team3128.autonomous.defensecrossers.CmdGoAcrossPortcullis") {
+					addSequential(robot.drive.new CmdMoveForward(50 * Length.cm, 4000, .5));
+				}
+				
+				// addSequential(robot.drive.new CmdMoveForward(50 * Length.cm, 4000, .5));
 				
 				//addSequential(robot.drive.new CmdInPlaceTurn(180, 4000, Direction.LEFT));
 			}
