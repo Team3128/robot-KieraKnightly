@@ -97,13 +97,7 @@ public abstract class MainUnladenSwallow extends MainClass
 	final static int fingerWarningFlashWavelength = 2; // in updateDashboard() ticks
 	boolean fingerWarningShowing = false;
 	
-	boolean intakeUp = true;
-	Thread intakeSmootherThread = null;
-	boolean intakeThreadRunning = false;
-	
-	boolean innerRollerStopEnabled = true;
-	boolean innerRollerCurrentlyIntaking = false;
-	boolean innerRollerBallAtMaxPos = false;
+	public boolean intakeUp = true;
 	int fingerFlashTimeLeft = fingerWarningFlashWavelength;
 	
 	public enum IntakeState
@@ -304,8 +298,6 @@ public abstract class MainUnladenSwallow extends MainClass
 				intakeSpinner.setTarget(IntakeState.STOPPED.motorPower);
 				innerRoller.setTarget(0);
 				
-				
-				innerRollerCurrentlyIntaking = false;
 				break;
 			case 1:
 			case 2:
@@ -313,26 +305,13 @@ public abstract class MainUnladenSwallow extends MainClass
 				intakeSpinner.setTarget(IntakeState.OUTTAKE.motorPower);
 				
 				innerRoller.setTarget(-.7);
-			
-				
-				innerRollerCurrentlyIntaking = false;
-				innerRollerBallAtMaxPos = false;
 				break;
 			case 4:
 			case 5:
 			case 6:
 				intakeSpinner.setTarget(IntakeState.INTAKE.motorPower);
-				
-				if(innerRollerStopEnabled && innerRollerBallAtMaxPos)
-				{
-					innerRoller.setTarget(0);
-				}
-				else
-				{
-					innerRoller.setTarget(.7);
-				}
-				innerRollerCurrentlyIntaking = true;
 
+				innerRoller.setTarget(.7);
 				break;
 			}
 

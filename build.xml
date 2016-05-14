@@ -31,7 +31,7 @@
   <import file="${common-library}/ant/build-common.xml"/>
 	
   <!-- +++++++++++++++++++++++++++++++++++++   FRC-Test   +++++++++++++++++++++++++++++++++++++ -->
-  <!--import file="${common-library.dir}/ant/frctest.xml"/-->
+  <import file="${common-library}/ant/frctest.xml"/>
   
 
 </project> 
