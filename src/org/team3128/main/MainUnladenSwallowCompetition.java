@@ -18,9 +18,11 @@ import edu.wpi.first.wpilibj.Talon;
  */
 public  class MainUnladenSwallowCompetition extends MainUnladenSwallow
 {
-	public MainUnladenSwallowCompetition()
+	@Override
+	protected void constructHardware()
 	{
-		
+		super.constructHardware();
+
 		leftDriveEncoder = new QuadratureEncoderLink(0,	1, 128, false);
 		rightDriveEncoder = new QuadratureEncoderLink(2, 3, 128, true);
 		

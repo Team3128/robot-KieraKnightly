@@ -21,8 +21,10 @@ public  class MainUnladenSwallowPractice extends MainUnladenSwallow
 {
 	static final double BACK_ARM_GEAR_RATIO = 1 / 180.0;
 
-	public MainUnladenSwallowPractice()
+	@Override
+	protected void constructHardware()
 	{
+		super.constructHardware();
 		
 		leftDriveEncoder = new QuadratureEncoderLink(0,	1, 128, false);
 		rightDriveEncoder = new QuadratureEncoderLink(2, 3, 128, true);
