@@ -104,8 +104,6 @@ public abstract class MainUnladenSwallow extends NarwhalRobot
 	
 	//we have to pass an argument to the constructors of these commands, so we have to instantiate them when the user presses the button.
 	public GenericSendableChooser<Class<? extends CommandGroup>> scoringChooser;
-	
-	public MainUnladenSwallow()
 	{
 		defenseChooser = new GenericSendableChooser<>();
 		fieldPositionChooser = new GenericSendableChooser<>();
@@ -133,18 +131,17 @@ public abstract class MainUnladenSwallow extends NarwhalRobot
 		lmRightJoy = new ListenerManager(rightJoystick);	
 		lmLeftJoy = new ListenerManager(leftJoystick);	
 
-		//launchpad = new Joystick(2);
+		//launchpad = new Joystick(2);		
 		powerDistPanel = new PowerDistributionPanel(0);
 
 	}
-
 	protected void constructHardware()
 	{	
 
 		//construct all of the stuff which requires objects constructed in the practice or competition subclasses
 		CameraServer camera = CameraServer.getInstance();
 		camera.setQuality(10);
-		camera.startAutomaticCapture("cam0");
+		camera.startAutomaticCapture("cam0");	
 		
 		addListenerManager(lmRightJoy);
 		addListenerManager(lmLeftJoy);
@@ -157,7 +154,6 @@ public abstract class MainUnladenSwallow extends NarwhalRobot
 		intake.setUp(true);
 		gearshift.shiftToLow();
 		grapplingHook.setPistonOff();
-
 		
         Log.info("MainUnladenSwallow", "Activating the Unladen Swallow");
         Log.info("MainUnladenSwallow", "...but which one, an African or a European?");
@@ -286,14 +282,16 @@ public abstract class MainUnladenSwallow extends NarwhalRobot
 	protected void teleopInit()
 	{	
 		backArm.setForTeleop();
-		backArmMotor.clearIAccum();
+		backArmMotor.ClearIaccum();
 		backArmMotor.set(0);
 		intake.setRollerState(Intake.RollerState.STOPPED);
 		
 		//gearshift.shiftToHigh();
-		
-
 	}
+	
+
+	
+
 
 	@Override
 	protected void constructAutoPrograms(GenericSendableChooser<CommandGroup> autoChooser)
@@ -355,7 +353,5 @@ public abstract class MainUnladenSwallow extends NarwhalRobot
 		}
 		
 	}
-	
-	
 
 }
