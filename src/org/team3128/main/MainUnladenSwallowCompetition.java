@@ -17,7 +17,8 @@ import edu.wpi.first.wpilibj.Talon;
  */
 public class MainUnladenSwallowCompetition extends MainUnladenSwallow
 {
-	public MainUnladenSwallowCompetition()
+	@Override
+	protected void constructHardware()
 	{
 		super();
 		
