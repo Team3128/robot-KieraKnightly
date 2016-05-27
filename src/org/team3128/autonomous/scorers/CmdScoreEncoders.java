@@ -1,7 +1,6 @@
 package org.team3128.autonomous.scorers;
 
 import org.team3128.autonomous.StrongholdStartingPosition;
-import org.team3128.autonomous.commands.CmdMoveRollers;
 import org.team3128.common.util.enums.Direction;
 import org.team3128.common.util.units.Length;
 import org.team3128.main.MainUnladenSwallow;
@@ -24,13 +23,10 @@ public class CmdScoreEncoders extends CommandGroup
 		 
 		 switch(startingPosition)
 		 {
-		 case FAR_LEFT:
-		 addSequential(robot.drive.new CmdMoveForward(10.0  * Length.ft, 0, .6), 7000);
-		 addSequential(robot.drive.new CmdInPlaceTurn(53, 5000, Direction.RIGHT));
-		 addSequential(robot.drive.new CmdMoveForward(11.7  * Length.ft, 0, .6), 4000);
-		 addSequential(new CmdMoveRollers(robot, 1000,true));
-		 addSequential(new CmdMoveRollers(robot, 1000,false));
-		 addSequential(new CmdMoveRollers(robot, 1000,true));
+		 case FAR_LEFT: //NOTE: as of the end of the season. only the this case is tested and works.  The rest are just guesses that we ran out of time to test.
+			 addSequential(robot.drive.new CmdMoveForward(10.0  * Length.ft, 0, .6), 7000);
+			 addSequential(robot.drive.new CmdInPlaceTurn(53, 5000, Direction.RIGHT));
+			 addSequential(robot.drive.new CmdMoveForward(11.7  * Length.ft, 0, .6), 4000);
 
 			 break;
 		 case CENTER_LEFT:
@@ -56,6 +52,10 @@ public class CmdScoreEncoders extends CommandGroup
 			 addSequential(robot.drive.new CmdMoveForward(50 * Length.cm, 2000, .4));
 			 break;
 		 }
+		 
+		 addSequential(robot.intake.new CmdMoveRollers(1000,false));
+		 addSequential(robot.intake.new CmdMoveRollers(1000,true));
+		 addSequential(robot.intake.new CmdMoveRollers(1000,false));
 		 
 	}
 

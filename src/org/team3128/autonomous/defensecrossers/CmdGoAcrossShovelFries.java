@@ -1,7 +1,6 @@
 
  package org.team3128.autonomous.defensecrossers;
 
-import org.team3128.autonomous.commands.CmdSetIntake;
 import org.team3128.common.autonomous.primitives.CmdDelay;
 import org.team3128.common.util.units.Length;
 import org.team3128.main.MainUnladenSwallow;
@@ -14,7 +13,7 @@ public class CmdGoAcrossShovelFries extends CommandGroup{
 		addSequential(robot.drive.new CmdMoveForward(105*Length.cm,4000, .6));
 		
 
-		addSequential(new CmdSetIntake(robot, false));
+		addSequential(robot.intake.new CmdSetIntake(false));
 		
 
 		addSequential(robot.drive.new CmdMoveForward(-5*Length.cm, 1000, .4));

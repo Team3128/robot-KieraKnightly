@@ -10,6 +10,7 @@ import org.team3128.autonomous.defensecrossers.CmdGoAcrossRoughTerrain;
 import org.team3128.autonomous.defensecrossers.CmdGoAcrossShovelFries;
 import org.team3128.autonomous.programs.StrongholdCompositeAuto;
 import org.team3128.autonomous.scorers.CmdScoreEncoders;
+import org.team3128.common.NarwhalRobot;
 import org.team3128.common.drive.TankDrive;
 import org.team3128.common.hardware.encoder.velocity.QuadratureEncoderLink;
 import org.team3128.common.hardware.lights.LightsColor;
@@ -18,17 +19,16 @@ import org.team3128.common.hardware.misc.Piston;
 import org.team3128.common.hardware.misc.TwoSpeedGearshift;
 import org.team3128.common.hardware.motor.MotorGroup;
 import org.team3128.common.listener.ListenerManager;
-import org.team3128.common.listener.POVValue;
 import org.team3128.common.listener.controllers.ControllerExtreme3D;
 import org.team3128.common.listener.controltypes.Button;
 import org.team3128.common.listener.controltypes.POV;
-import org.team3128.common.multibot.MainClass;
-import org.team3128.common.multibot.RobotTemplate;
 import org.team3128.common.util.GenericSendableChooser;
 import org.team3128.common.util.Log;
 import org.team3128.common.util.RobotMath;
+import org.team3128.common.util.datatypes.PIDConstants;
 import org.team3128.common.util.units.Length;
 import org.team3128.mechanisms.Finger;
+import org.team3128.mechanisms.Intake;
 import org.team3128.testmainclasses.MainLightsTest;
 
 import edu.wpi.first.wpilibj.CANTalon;
@@ -43,7 +43,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 /**
  * Main class for our 2016 robot, the Unladen Swallow.
  */
-public abstract class MainUnladenSwallow extends MainClass
+public abstract class MainUnladenSwallow extends NarwhalRobot
 {
 	
 	public ListenerManager lmLeftJoy, lmRightJoy;
@@ -69,6 +69,8 @@ public abstract class MainUnladenSwallow extends MainClass
 	
 	public TankDrive drive;
 	
+	public Intake intake;
+	
 	public PWMLights lights;
 	
 	public TwoSpeedGearshift gearshift;
@@ -80,12 +82,8 @@ public abstract class MainUnladenSwallow extends MainClass
 	Compressor compressor;
 	
 	
-	final static public double STRAIGHT_DRIVE_KP = .0005;
+	final static public PIDConstants STRAIGHT_DRIVE_CONST = new PIDConstants(.0005);
 	static public double INTAKE_BALL_DISTANCE_THRESHOLD = .4; //voltage
-	
-	
-	double microPistonExtensions = 0;
-	double mediumPistonExtensions = 0;
 	
 	boolean usingBackCamera;
 	
@@ -97,24 +95,8 @@ public abstract class MainUnladenSwallow extends MainClass
 	final static int fingerWarningFlashWavelength = 2; // in updateDashboard() ticks
 	boolean fingerWarningShowing = false;
 	
-	public boolean intakeUp = true;
 	int fingerFlashTimeLeft = fingerWarningFlashWavelength;
-	
-	public enum IntakeState
-	{
-		STOPPED(0),
-		INTAKE(1),
-		OUTTAKE(-1);
-		public final double motorPower;
 		
-		private IntakeState(double motorPower)
-		{
-			this.motorPower = motorPower;
-		}
-	}
-	
-	IntakeState intakeState;
-	
 	public GenericSendableChooser<CommandGroup> defenseChooser;
 	public GenericSendableChooser<StrongholdStartingPosition> fieldPositionChooser;
 	
@@ -152,33 +134,38 @@ public abstract class MainUnladenSwallow extends MainClass
 		lmLeftJoy = new ListenerManager(leftJoystick);	
 
 		//launchpad = new Joystick(2);
-		
-	}
-
-	protected void initializeRobot(RobotTemplate robotTemplate)
-	{	
 		powerDistPanel = new PowerDistributionPanel(0);
 
-		
+	}
+
+	protected void constructHardware()
+	{	
+
+		//construct all of the stuff which requires objects constructed in the practice or competition subclasses
 		CameraServer camera = CameraServer.getInstance();
 		camera.setQuality(10);
 		camera.startAutomaticCapture("cam0");
 		
-		robotTemplate.addListenerManager(lmRightJoy);
-		robotTemplate.addListenerManager(lmLeftJoy);
+		addListenerManager(lmRightJoy);
+		addListenerManager(lmLeftJoy);
 		//robotTemplate.addListenerManager(listenerManagerLaunchpad);	
 		
 		//must run after subclass constructors
 		drive = new TankDrive(leftMotors, rightMotors, leftDriveEncoder, rightDriveEncoder, 7.65 * Length.in * Math.PI, DRIVE_WHEELS_GEAR_RATIO, 28.33 * Length.in);
-
+		intake = new Intake(intakeSpinner, innerRoller, leftIntakePiston, rightIntakePiston);	
+		
+		intake.setUp(true);
 		gearshift.shiftToLow();
-		lights.executeSequence(MainLightsTest.lightsRainbowSequence);
 		grapplingHook.setPistonOff();
 
-		//workaround for autonomous
-		Scheduler.getInstance().add(new StrongholdCompositeAuto(this));
 		
-		
+        Log.info("MainUnladenSwallow", "Activating the Unladen Swallow");
+        Log.info("MainUnladenSwallow", "...but which one, an African or a European?");
+	}
+	
+	@Override
+	protected void setupListeners()
+	{
 		//-----------------------------------------------------------
 		// Teleop listeners
 		//-----------------------------------------------------------
@@ -193,15 +180,12 @@ public abstract class MainUnladenSwallow extends MainClass
 		lmRightJoy.nameControl(new Button(10), "RaiseLowerIntake");
 		lmRightJoy.nameControl(new Button(7), "ResetHeadingReadout");
 		lmRightJoy.nameControl(new Button(5), "FingerExtend");
-		lmRightJoy.nameControl(new Button(6), "RaiseLowerIntake");
+		lmRightJoy.nameControl(new Button(6), "FingerRetract");
 		lmRightJoy.nameControl(new Button(11), "ZeroFinger");
 		lmRightJoy.nameControl(new Button(12), "RemoveFingerSoftLimit");
 		
 		lmLeftJoy.nameControl(new Button(1), "FireHook");
 		lmLeftJoy.nameControl(ControllerExtreme3D.JOYY, "Winch");
-		
-        Log.info("MainUnladenSwallow", "Activating the Unladen Swallow");
-        Log.info("MainUnladenSwallow", "...but which one, an African or a European?");
 	
 
 		lmRightJoy.nameControl(new POV(0), "IntakePOV");
@@ -230,24 +214,7 @@ public abstract class MainUnladenSwallow extends MainClass
 			compressor.stop();
 		});
 		
-		lmRightJoy.addButtonDownListener("RaiseLowerIntake", () ->
-		{
-			if(intakeUp)
-			{
-
-				leftIntakePiston.setPistonOff();
-				rightIntakePiston.setPistonOff();
-			}
-			else
-			{
-				
-				leftIntakePiston.setPistonOn();
-				rightIntakePiston.setPistonOn();
-			}
-			
-			intakeUp = !intakeUp;
-			mediumPistonExtensions += 2;
-		});
+		lmRightJoy.addButtonDownListener("RaiseLowerIntake", intake::toggleUp);
 		
 		lmRightJoy.addButtonDownListener("ResetHeadingReadout", () ->
 		{
@@ -290,48 +257,22 @@ public abstract class MainUnladenSwallow extends MainClass
 			winch.setTarget(value);
 		});
 		
-		lmRightJoy.addListener("IntakePOV", (POVValue newValue) -> 
-		{
-			switch(newValue.getDirectionValue())
-			{
-			case 0:
-				intakeSpinner.setTarget(IntakeState.STOPPED.motorPower);
-				innerRoller.setTarget(0);
-				
-				break;
-			case 1:
-			case 2:
-			case 8:
-				intakeSpinner.setTarget(IntakeState.OUTTAKE.motorPower);
-				
-				innerRoller.setTarget(-.7);
-				break;
-			case 4:
-			case 5:
-			case 6:
-				intakeSpinner.setTarget(IntakeState.INTAKE.motorPower);
-
-				innerRoller.setTarget(.7);
-				break;
-			}
-
-			
-
-		});
-		
-
-		
-        Log.info("MainUnladenSwallow", "Activating the Unladen Swallow");
-        Log.info("MainUnladenSwallow", "...but which one, an African or a European?");
+		lmRightJoy.addListener("IntakePOV", intake::onPOVUpdate);
 	}
 
-	protected void initializeDisabled()
+	@Override
+	protected void disabledInit()
 	{
 		// clear the motor speed set in autonomous, if there was one (because the robot was manually stopped)
 		drive.arcadeDrive(0, 0, 0, false);
+		
+		//workaround for autonomous
+		Scheduler.getInstance().add(new StrongholdCompositeAuto(this));
+		
 	}
 
-	protected void initializeAuto()
+	@Override
+	protected void autonomousInit()
 	{
 		backArm.setLocked();
 		backArmMotor.clearIAccum();
@@ -341,13 +282,13 @@ public abstract class MainUnladenSwallow extends MainClass
 		lights.executeSequence(MainLightsTest.lightsRainbowSequence);
 	}
 	
-	protected void initializeTeleop()
+	@Override
+	protected void teleopInit()
 	{	
 		backArm.setForTeleop();
 		backArmMotor.clearIAccum();
 		backArmMotor.set(0);
-		intakeSpinner.setTarget(IntakeState.STOPPED.motorPower);
-		intakeState = IntakeState.STOPPED;
+		intake.setRollerState(Intake.RollerState.STOPPED);
 		
 		//gearshift.shiftToHigh();
 		
@@ -355,7 +296,7 @@ public abstract class MainUnladenSwallow extends MainClass
 	}
 
 	@Override
-	protected void addAutoPrograms(GenericSendableChooser<CommandGroup> autoChooser)
+	protected void constructAutoPrograms(GenericSendableChooser<CommandGroup> autoChooser)
 	{
 		//autoChooser.addObject("Test Ultrasonic Movement", new UnladenSwallowTestAuto(this));
 		
@@ -408,8 +349,7 @@ public abstract class MainUnladenSwallow extends MainClass
 		
 		SmartDashboard.putString("Finger", fingerWarningShowing ? "Extended" : "");
 		
-		SmartDashboard.putString("Robot Mode", getRobotMode().toString().toLowerCase());
-		if(getRobotMode() != RobotMode.AUTONOMOUS)
+		if(!isAutonomous())
 		{
 			lights.setColor(lightsChooser.getSelected());	
 		}

@@ -10,7 +10,6 @@ import org.team3128.mechanisms.Finger;
 import edu.wpi.first.wpilibj.CANTalon;
 import edu.wpi.first.wpilibj.CANTalon.FeedbackDevice;
 import edu.wpi.first.wpilibj.Compressor;
-import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Victor;
 
@@ -48,13 +47,13 @@ public  class MainUnladenSwallowPractice extends MainUnladenSwallow
 		winch.addMotor(new Talon(4));
 	
 		//
-		grapplingHook = new Piston(new Solenoid(2), new Solenoid(5),true,false);
-		gearshiftPistons = new Piston(new Solenoid(0), new Solenoid(7),true,false);
+		grapplingHook = new Piston(2, 5,true,false);
+		gearshiftPistons = new Piston(0, 7,true,false);
 		
 		gearshift = new TwoSpeedGearshift(true, gearshiftPistons);
 
-		leftIntakePiston = new Piston(new Solenoid(4), new Solenoid(3),true,false);
-		rightIntakePiston = new Piston(new Solenoid(1), new Solenoid(6),true,false);
+		leftIntakePiston = new Piston(4, 3,true,false);
+		rightIntakePiston = new Piston(1, 6,true,false);
 		compressor = new Compressor();
 		
 		
