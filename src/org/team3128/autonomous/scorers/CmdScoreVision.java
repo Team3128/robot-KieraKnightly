@@ -1,9 +1,6 @@
 package org.team3128.autonomous.scorers;
 
 import org.team3128.autonomous.StrongholdStartingPosition;
-import org.team3128.autonomous.commands.CmdMoveRollers;
-import org.team3128.autonomous.commands.CmdSetIntake;
-import org.team3128.common.autonomous.primitives.CmdLambda;
 import org.team3128.common.autonomous.primitives.CmdRunInParallel;
 import org.team3128.common.util.enums.Direction;
 import org.team3128.common.util.units.Length;
@@ -24,7 +21,7 @@ public class CmdScoreVision extends CommandGroup
 	{
 		this.robot = robot;
 		
-		addSequential(new CmdRunInParallel(new CmdSetIntake(robot, false), robot.gearshift.new CmdDownshift()));
+		addSequential(new CmdRunInParallel(robot.intake.new CmdSetIntake(false), robot.gearshift.new CmdDownshift()));
 		 
 		 switch(startingPosition)
 		 {
@@ -33,7 +30,6 @@ public class CmdScoreVision extends CommandGroup
 			 addSequential(robot.drive.new CmdInPlaceTurn(45, 2000, Direction.RIGHT));
 			 addSequential(new CmdAlignToLowGoal(robot, 1280 / 2)); //line up the goal in the center
 			 addSequential(robot.drive.new CmdMoveForward(10 * Length.ft, 7000, .45));
-			 addSequential(new CmdMoveRollers(robot, 3000,true));
 			 break;
 		 case CENTER_LEFT:
 			 addSequential(robot.drive.new CmdMoveForward(250 * Length.cm, 5000, .3));
@@ -59,24 +55,8 @@ public class CmdScoreVision extends CommandGroup
 			 break;
 		 }
 		 
-		 
-		 addSequential(new CmdLambda(() -> {
-			 robot.innerRoller.setTarget(-1);
-			 robot.intakeSpinner.setTarget(MainUnladenSwallow.IntakeState.OUTTAKE.motorPower);
-			 
-			 try {
-				Thread.sleep(2000);
-			} 
-			 catch (Exception e)
-			 {
-				e.printStackTrace();
-			}
-			 
-			 robot.innerRoller.setTarget(0);
-			 robot.intakeSpinner.setTarget(MainUnladenSwallow.IntakeState.STOPPED.motorPower);
-		 }));
+
+		 addSequential(robot.intake.new CmdMoveRollers(3000,true));
 	}
-
-
 
 }

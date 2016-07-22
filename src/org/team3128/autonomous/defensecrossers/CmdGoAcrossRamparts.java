@@ -1,6 +1,5 @@
 package org.team3128.autonomous.defensecrossers;
 
-import org.team3128.autonomous.commands.CmdSetIntake;
 import org.team3128.common.util.units.Length;
 import org.team3128.main.MainUnladenSwallow;
 
@@ -25,7 +24,7 @@ public class CmdGoAcrossRamparts extends CommandGroup {
 	    * -----------------------------------------------------*/
 	 public CmdGoAcrossRamparts(MainUnladenSwallow robot)
 	 {
-		 addSequential(new CmdSetIntake(robot, true));
+		 addSequential(robot.intake.new CmdSetIntake(true));
 		 addSequential(robot.gearshift.new CmdUpshift());
 		 addSequential(robot.drive.new CmdMoveForward(1000 * Length.cm, 2000, 1));
 	 }
