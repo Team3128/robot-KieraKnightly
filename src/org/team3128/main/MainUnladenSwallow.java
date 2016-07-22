@@ -164,10 +164,6 @@ public abstract class MainUnladenSwallow extends NarwhalRobot
 		//must run after subclass constructors
 		drive = new TankDrive(leftMotors, rightMotors, leftDriveEncoder, rightDriveEncoder, 7.65 * Length.in * Math.PI, DRIVE_WHEELS_GEAR_RATIO, 28.33 * Length.in);
 
-		gearshift.shiftToLow();
-		lights.executeSequence(MainLightsTest.lightsRainbowSequence);
-		grapplingHook.setPistonOff();
-		
         Log.info("MainUnladenSwallow", "Activating the Unladen Swallow");
         Log.info("MainUnladenSwallow", "...but which one, an African or a European?");
 	}
@@ -341,7 +337,8 @@ public abstract class MainUnladenSwallow extends NarwhalRobot
 		intakeSpinner.setTarget(IntakeState.STOPPED.motorPower);
 		intakeState = IntakeState.STOPPED;
 		
-		//gearshift.shiftToHigh();
+		gearshift.shiftToLow();
+		
 	}
 	
 
