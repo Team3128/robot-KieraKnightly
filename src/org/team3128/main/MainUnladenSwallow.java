@@ -107,7 +107,6 @@ public abstract class MainUnladenSwallow extends MainClass
 	int fingerFlashTimeLeft = fingerWarningFlashWavelength;
 	int endGameFLashTimeLeft = endGameFlashWaveLength;
 	
-	long teleStart = 0;
 	
 	public enum IntakeState
 	{
@@ -170,8 +169,10 @@ public abstract class MainUnladenSwallow extends MainClass
 
 		rightJoystick = new Joystick(1);
 		leftJoystick = new Joystick(0);
+		
+		Joystick buddyBoxJoystick = new Joystick(2);
 
-		lmRightJoy = new ListenerManager(rightJoystick);	
+		lmRightJoy = new ListenerManager(rightJoystick, buddyBoxJoystick);	
 		lmLeftJoy = new ListenerManager(leftJoystick);	
 
 		//launchpad = new Joystick(2);
@@ -182,11 +183,6 @@ public abstract class MainUnladenSwallow extends MainClass
 	{	
 		powerDistPanel = new PowerDistributionPanel(0);
 
-		
-		CameraServer camera = CameraServer.getInstance();
-		camera.setQuality(10);
-		camera.startAutomaticCapture("cam0");
-		
 		robotTemplate.addListenerManager(lmRightJoy);
 		robotTemplate.addListenerManager(lmLeftJoy);
 		//robotTemplate.addListenerManager(listenerManagerLaunchpad);	
@@ -220,17 +216,8 @@ public abstract class MainUnladenSwallow extends MainClass
 	
 	protected void initializeTeleop()
 	{	
+				
 		
-		teleStart = System.currentTimeMillis();
-		
-		CameraServer cameraTele = CameraServer.getInstance();
-		cameraTele.setQuality(10);
-		if (!cameraTele.isAutoCaptureStarted()) {
-			cameraTele.startAutomaticCapture("cam0");
-			Log.debug("MainUnladenSwallow", "Restarted Camera");
-		}
-		
-		Log.debug("MainUnladenSwallow", "Restarted Camera");
 		
 		//-----------------------------------------------------------
 		// Drive code, on Logitech Extreme3D joystick
@@ -457,52 +444,12 @@ public abstract class MainUnladenSwallow extends MainClass
 		//SmartDashboard.putNumber("Total Current: ", powerDistPanel.getTotalCurrent());
 		
 		SmartDashboard.putString("Current Gear", gearshift.isInHighGear() ? "High" : "Low");
-		
-		SmartDashboard.putNumber("Back Arm Angle:", backArm.getAngle());
 		//Log.debug("MainUnladenSwallow", String.format("Back arm encoder position: %f, angle: %f", backArmMotor.getPosition(), backArm.getAngle()));
 		//SmartDashboard.putNumber("Left Drive Enc Distance:", leftDriveEncoder.getDistanceInDegrees());
 		
 		SmartDashboard.putNumber("Robot Heading", RobotMath.normalizeAngle(drive.getRobotAngle() - robotAngleReadoutOffset));
 //		SmartDashboard.putNumber("Ultrasonic Distance:", ultrasonic.getDistance());
 		
-		long timeLeft = 135 - (System.currentTimeMillis() - teleStart)/1000;
-		
-		
-		if (timeLeft < -1) {
-			SmartDashboard.putString("Time Left: ", "0");
-		}
-		else if (timeLeft < 20) {
-			--endGameFLashTimeLeft;
-			if(endGameFLashTimeLeft <= 1)
-			{
-				endGameFLashTimeLeft = endGameFlashWaveLength;
-				endGameWarningShowing = !endGameWarningShowing;
-			}
-			
-			SmartDashboard.putString("Time Left: ", endGameWarningShowing ? String.valueOf(timeLeft) : "");
-		}
-		else {
-			endGameWarningShowing = false;
-			SmartDashboard.putString("Time Left: ", String.valueOf(timeLeft));
-		}
-		
-		if(backArm.getAngle() > -90 && timeLeft <= -1)
-		{
-			fingerFlashTimeLeft -= 1;
-			if(fingerFlashTimeLeft < 1)
-			{
-				fingerFlashTimeLeft = fingerWarningFlashWavelength;
-				fingerWarningShowing = !fingerWarningShowing;
-			}
-		}
-		else
-		{
-			fingerWarningShowing = false;
-		}
-		
-		SmartDashboard.putString("Cleared for Hook Launch?", fingerWarningShowing ? "|||||||||||||NO||||||||||||" : "");
-		
-		//SmartDashboard.putString("Cleared for Hook Launch?", fingerWarningShowing ? "|||||||||||||NO||||||||||||" : "");
 		
 		SmartDashboard.putString("Robot Mode", getRobotMode().toString().toLowerCase());
 		if(getRobotMode() != RobotMode.AUTONOMOUS)
