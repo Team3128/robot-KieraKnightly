@@ -20,8 +20,7 @@ public  class MainUnladenSwallowPractice extends MainUnladenSwallow
 {
 	static final double BACK_ARM_GEAR_RATIO = 1 / 180.0;
 
-	@Override
-	protected void constructHardware()
+	public MainUnladenSwallowPractice()
 	{
 		super.constructHardware();
 		

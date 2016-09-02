@@ -262,9 +262,6 @@ public abstract class MainUnladenSwallow extends NarwhalRobot
 		// clear the motor speed set in autonomous, if there was one (because the robot was manually stopped)
 		drive.arcadeDrive(0, 0, 0, false);
 		
-		//workaround for autonomous
-		Scheduler.getInstance().add(new StrongholdCompositeAuto(this));
-		
 	}
 
 	@Override
@@ -314,6 +311,9 @@ public abstract class MainUnladenSwallow extends NarwhalRobot
 		scoringChooser.addDefault("No Scoring", null);
 		scoringChooser.addObject("Encoder-Based (live reckoning) Scoring", CmdScoreEncoders.class);
 		//scoringChooser.addObject("Ultrasonic & Encoder Scoring (experimental)", CmdScoreUltrasonic.class);
+		
+		//workaround for autonomous
+		Scheduler.getInstance().add(new StrongholdCompositeAuto(this));
 
 
 	}
