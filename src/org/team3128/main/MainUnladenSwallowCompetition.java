@@ -45,7 +45,6 @@ public class MainUnladenSwallowCompetition extends MainUnladenSwallow
 		winch = new MotorGroup();
 		winch.addMotor(new Talon(6));
 	
-		//
 		grapplingHook = new Piston(3, 5,false,false);
 		gearshiftPistons = new Piston(2, 6,false,false);
 		

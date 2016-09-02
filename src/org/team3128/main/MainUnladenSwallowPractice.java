@@ -48,9 +48,9 @@ public  class MainUnladenSwallowPractice extends MainUnladenSwallow
 		winch.addMotor(new Talon(4));
 	
 		//
+
 		grapplingHook = new Piston(2, 5,true,false);
-		gearshiftPistons = new Piston(0, 7,true,false);
-		
+		gearshiftPistons = new Piston(0, 7,true,false);		
 		gearshift = new TwoSpeedGearshift(true, gearshiftPistons);
 
 		leftIntakePiston = new Piston(4, 3,true,false);

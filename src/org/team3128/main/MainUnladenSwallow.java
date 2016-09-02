@@ -148,7 +148,8 @@ public abstract class MainUnladenSwallow extends NarwhalRobot
 		//robotTemplate.addListenerManager(listenerManagerLaunchpad);	
 		
 		//must run after subclass constructors
-		drive = new TankDrive(leftMotors, rightMotors, leftDriveEncoder, rightDriveEncoder, 7.65 * Length.in * Math.PI, DRIVE_WHEELS_GEAR_RATIO, 28.33 * Length.in);
+		//TODO: Measure track & wheelbase
+		drive = new TankDrive(leftMotors, rightMotors, leftDriveEncoder, rightDriveEncoder, 7.65 * Length.in * Math.PI, DRIVE_WHEELS_GEAR_RATIO, 28.33 * Length.in, 28 * Length.in);
 		intake = new Intake(intakeSpinner, innerRoller, leftIntakePiston, rightIntakePiston);	
 		
 		intake.setUp(true);
@@ -283,7 +284,8 @@ public abstract class MainUnladenSwallow extends NarwhalRobot
 		backArmMotor.set(0);
 		intake.setRollerState(Intake.RollerState.STOPPED);
 		
-		//gearshift.shiftToHigh();
+		gearshift.shiftToLow();
+		
 	}
 	
 
