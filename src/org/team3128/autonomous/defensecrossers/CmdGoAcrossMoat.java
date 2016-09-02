@@ -24,7 +24,7 @@ public class CmdGoAcrossMoat extends CommandGroup {
 	    * -----------------------------------------------------*/
 	 public CmdGoAcrossMoat(MainUnladenSwallow robot)
 	 {
-		 addSequential(robot.new CmdSetIntake(false));
+		 addSequential(robot.intake.new CmdSetIntake(false));
 		 addSequential(robot.gearshift.new CmdUpshift());
 		 addSequential(robot.drive.new CmdMoveForward(600 * Length.cm, 5000, true));
 		 

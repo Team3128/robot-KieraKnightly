@@ -13,7 +13,7 @@ public class CmdGoAcrossShovelFries extends CommandGroup{
 		addSequential(robot.drive.new CmdMoveForward(105*Length.cm,4000, .6));
 		
 
-		addSequential(robot.new CmdSetIntake(false));
+		addSequential(robot.intake.new CmdSetIntake(false));
 		
 
 		addSequential(robot.drive.new CmdMoveForward(-5*Length.cm, 1000, .4));

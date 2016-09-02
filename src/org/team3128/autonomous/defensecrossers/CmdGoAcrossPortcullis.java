@@ -10,7 +10,7 @@ public class CmdGoAcrossPortcullis extends CommandGroup {
 
 	 public CmdGoAcrossPortcullis(MainUnladenSwallow robot)
 	 {
-		 addSequential(robot.new CmdSetIntake(false));
+		 addSequential(robot.intake.new CmdSetIntake(false));
 		 addSequential(robot.backArm.new CmdMoveToAngle(3000, 200 * Angle.DEGREES));
 		 
 		 //addSequential(robot.drive.new CmdMoveStraightForward(-350 * Length.cm, MainUnladenSwallow.STRAIGHT_DRIVE_KP, 5000, .4));
