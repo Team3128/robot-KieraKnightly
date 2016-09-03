@@ -22,7 +22,6 @@ public  class MainUnladenSwallowPractice extends MainUnladenSwallow
 
 	public MainUnladenSwallowPractice()
 	{
-		super.constructHardware();
 		
 		leftDriveEncoder = new QuadratureEncoderLink(0,	1, 128, false);
 		rightDriveEncoder = new QuadratureEncoderLink(2, 3, 128, true);
@@ -45,7 +44,7 @@ public  class MainUnladenSwallowPractice extends MainUnladenSwallow
 		innerRoller.invert();
 		
 		winch = new MotorGroup();
-		winch.addMotor(new Talon(4));
+		winch.addMotor(new CANTalon(1));
 	
 		//
 
@@ -70,6 +69,12 @@ public  class MainUnladenSwallowPractice extends MainUnladenSwallow
 		lights = new PWMLights(17, 18, 19);
 	}
 	
+	@Override
+	protected void constructHardware()
+	{
+		super.constructHardware();
+
+	}
 	
 
 }

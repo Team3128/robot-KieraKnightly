@@ -32,7 +32,6 @@ import org.team3128.mechanisms.Intake;
 import org.team3128.testmainclasses.MainLightsTest;
 
 import edu.wpi.first.wpilibj.CANTalon;
-import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PowerDistributionPanel;
@@ -93,9 +92,12 @@ public abstract class MainUnladenSwallow extends NarwhalRobot
 	double robotAngleReadoutOffset;
 	
 	final static int fingerWarningFlashWavelength = 2; // in updateDashboard() ticks
+	final static int endGameFlashWaveLength = 2;
 	boolean fingerWarningShowing = false;
+	boolean endGameWarningShowing = false;
 	
 	int fingerFlashTimeLeft = fingerWarningFlashWavelength;
+	int endGameFLashTimeLeft = endGameFlashWaveLength;
 		
 	public GenericSendableChooser<CommandGroup> defenseChooser;
 	public GenericSendableChooser<StrongholdStartingPosition> fieldPositionChooser;
@@ -125,24 +127,21 @@ public abstract class MainUnladenSwallow extends NarwhalRobot
 
 		SmartDashboard.putData("Lights Chooser", lightsChooser);
 
-		rightJoystick = new Joystick(0);
-		leftJoystick = new Joystick(1);
+		rightJoystick = new Joystick(1);
+		leftJoystick = new Joystick(0);
+		
+		Joystick buddyBoxJoystick = new Joystick(2);
 
-		lmRightJoy = new ListenerManager(rightJoystick);	
+		lmRightJoy = new ListenerManager(rightJoystick, buddyBoxJoystick);	
 		lmLeftJoy = new ListenerManager(leftJoystick);	
 
 		//launchpad = new Joystick(2);		
-		powerDistPanel = new PowerDistributionPanel(0);
+		powerDistPanel = new PowerDistributionPanel();
 
 	}
 	protected void constructHardware()
 	{	
 
-		//construct all of the stuff which requires objects constructed in the practice or competition subclasses
-		CameraServer camera = CameraServer.getInstance();
-		camera.setQuality(10);
-		camera.startAutomaticCapture("cam0");	
-		
 		addListenerManager(lmRightJoy);
 		addListenerManager(lmLeftJoy);
 		//robotTemplate.addListenerManager(listenerManagerLaunchpad);	
@@ -159,6 +158,23 @@ public abstract class MainUnladenSwallow extends NarwhalRobot
         Log.info("MainUnladenSwallow", "Activating the Unladen Swallow");
         Log.info("MainUnladenSwallow", "...but which one, an African or a European?");
 	}
+
+	protected void initializeDisabled()
+	{
+		// clear the motor speed set in autonomous, if there was one (because the robot was manually stopped)
+		drive.arcadeDrive(0, 0, 0, false);
+	}
+
+	protected void initializeAuto()
+	{
+		backArm.setLocked();
+		backArmMotor.clearIAccum();
+		
+		Scheduler.getInstance().add(new StrongholdCompositeAuto(this));
+		
+        Log.info("MainUnladenSwallow", "Activating the Unladen Swallow");
+        Log.info("MainUnladenSwallow", "...but which one, an African or a European?");
+	}
 	
 	@Override
 	protected void setupListeners()
@@ -166,10 +182,10 @@ public abstract class MainUnladenSwallow extends NarwhalRobot
 		//-----------------------------------------------------------
 		// Teleop listeners
 		//-----------------------------------------------------------
+		
 		lmRightJoy.nameControl(ControllerExtreme3D.TWIST, "JoyTurn");
 		lmRightJoy.nameControl(ControllerExtreme3D.JOYY, "JoyForwardBackward");
 		lmRightJoy.nameControl(ControllerExtreme3D.THROTTLE, "DriveThrottle");
-		
 		lmRightJoy.nameControl(new Button(4), "ClearStickyFaults");
 		lmRightJoy.nameControl(new Button(2), "Shift");
 		lmRightJoy.nameControl(new Button(8), "StartCompressor");
@@ -183,7 +199,7 @@ public abstract class MainUnladenSwallow extends NarwhalRobot
 		
 		lmLeftJoy.nameControl(new Button(1), "FireHook");
 		lmLeftJoy.nameControl(ControllerExtreme3D.JOYY, "Winch");
-	
+
 
 		lmRightJoy.nameControl(new POV(0), "IntakePOV");
 
@@ -196,24 +212,30 @@ public abstract class MainUnladenSwallow extends NarwhalRobot
 			drive.arcadeDrive(joyX, joyY, -lmRightJoy.getAxis("DriveThrottle"), true);
 		}, "JoyTurn", "JoyForwardBackward", "DriveThrottle");
 		
+		lmRightJoy.addListener("ClearStickyFaults", () ->
+		{
+			powerDistPanel.clearStickyFaults();
+		});
 		
-		lmRightJoy.addButtonDownListener("ClearStickyFaults", () -> powerDistPanel.clearStickyFaults());
+		lmRightJoy.addListener("Shift", () -> 
+		{
+			gearshift.shiftToOtherGear();
 		
-		lmRightJoy.addButtonDownListener("Shift", () -> gearshift.shiftToOtherGear());
+		});
 		
-		lmRightJoy.addButtonDownListener("StartCompressor", () -> 
+		lmRightJoy.addListener("StartCompressor", () -> 
 		{
 			compressor.start();
 		});
 		
-		lmRightJoy.addButtonDownListener("StopCompressor", () -> 
+		lmRightJoy.addListener("StopCompressor", () -> 
 		{
 			compressor.stop();
 		});
 		
 		lmRightJoy.addButtonDownListener("RaiseLowerIntake", intake::toggleUp);
 		
-		lmRightJoy.addButtonDownListener("ResetHeadingReadout", () ->
+		lmRightJoy.addListener("ResetHeadingReadout", () ->
 		{
 			robotAngleReadoutOffset = drive.getRobotAngle();
 		});
@@ -221,37 +243,35 @@ public abstract class MainUnladenSwallow extends NarwhalRobot
 		lmRightJoy.addButtonDownListener("FingerExtend", () -> {
 			backArmMotor.set(.5);	
 		});
+		lmRightJoy.addButtonUpListener("FingerExtend", () -> {
+			backArmMotor.set(0);	
+		});
 		
 		lmRightJoy.addButtonDownListener("FingerRetract", () -> {
 			backArmMotor.set(-.5);	
 		});
-		
-		lmRightJoy.addButtonUpListener("FingerExtend", () -> {
-			backArmMotor.set(0);	
-		});
-
 		lmRightJoy.addButtonUpListener("FingerRetract", () -> {
 			backArmMotor.set(0);	
 		});
 		
-		lmRightJoy.addButtonDownListener("ZeroFinger", () -> {
-
+		lmRightJoy.addListener("ZeroFinger", () -> {
 			backArmMotor.setEncPosition(0);	
 			backArmMotor.enableForwardSoftLimit(true);
 		});
 
-		lmRightJoy.addButtonDownListener("RemoveFingerSoftLimit", () -> {
+		lmRightJoy.addListener("RemoveFingerSoftLimit", () -> {
 			backArmMotor.enableForwardSoftLimit(false);
 		});
 		
-		lmLeftJoy.addButtonDownListener("FireHook", () ->
+		lmLeftJoy.addListener("FireHook", () ->
 		{
-			grapplingHook.invertPiston();
+			grapplingHook.setPistonInvert();
+			Log.debug("MUS", "Firing hook");
 		});
 		
-		lmLeftJoy.addListener("Winch", (double value) ->
+		lmLeftJoy.addListener("Winch", () ->
 		{
-			winch.setTarget(value);
+			winch.setTarget(lmLeftJoy.getAxis("Winch"));
 		});
 		
 		lmRightJoy.addListener("IntakePOV", intake::onPOVUpdate);
@@ -324,30 +344,14 @@ public abstract class MainUnladenSwallow extends NarwhalRobot
 	protected void updateDashboard()
 	{
 		//SmartDashboard.putNumber("Total Current: ", powerDistPanel.getTotalCurrent());
-		SmartDashboard.putString("Current Gear", gearshift.isInHighGear() ? "High" : "Low");
 		
-		SmartDashboard.putNumber("Back Arm Angle:", backArm.getAngle());
+		SmartDashboard.putString("Current Gear", gearshift.isInHighGear() ? "High" : "Low");
 		//Log.debug("MainUnladenSwallow", String.format("Back arm encoder position: %f, angle: %f", backArmMotor.getPosition(), backArm.getAngle()));
 		//SmartDashboard.putNumber("Left Drive Enc Distance:", leftDriveEncoder.getDistanceInDegrees());
 		
 		SmartDashboard.putNumber("Robot Heading", RobotMath.normalizeAngle(drive.getRobotAngle() - robotAngleReadoutOffset));
 //		SmartDashboard.putNumber("Ultrasonic Distance:", ultrasonic.getDistance());
 		
-		if(backArm.getAngle() < -30)
-		{
-			--fingerFlashTimeLeft;
-			if(fingerFlashTimeLeft < 1)
-			{
-				fingerFlashTimeLeft = fingerWarningFlashWavelength;
-				fingerWarningShowing = !fingerWarningShowing;
-			}
-		}
-		else
-		{
-			fingerWarningShowing = false;
-		}
-		
-		SmartDashboard.putString("Finger", fingerWarningShowing ? "Extended" : "");
 		
 		if(!isAutonomous())
 		{

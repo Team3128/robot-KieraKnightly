@@ -1,6 +1,7 @@
 package org.team3128.autonomous.defensecrossers;
 
 import org.team3128.common.util.Log;
+import org.team3128.common.util.enums.Direction;
 import org.team3128.common.util.units.Length;
 import org.team3128.main.MainUnladenSwallow;
 
@@ -29,5 +30,6 @@ public class CmdGoAcrossRockWall extends CommandGroup {
 		 Log.info("CmdGoAcrossRockWall", "Driving...");
 		 addSequential(robot.drive.new CmdMoveForward(400 * Length.cm, 4000, .9));
 		 Log.info("CmdGoAcrossRockWall", "Drove.");
+		 addSequential(robot.drive.new CmdInPlaceTurn(20, 1000, Direction.RIGHT));
 	 }
 }
