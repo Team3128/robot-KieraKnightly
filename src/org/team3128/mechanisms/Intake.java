@@ -3,6 +3,7 @@ package org.team3128.mechanisms;
 import org.team3128.common.hardware.misc.Piston;
 import org.team3128.common.hardware.motor.MotorGroup;
 import org.team3128.common.listener.POVValue;
+import org.team3128.common.util.Log;
 
 import edu.wpi.first.wpilibj.command.Command;
 
@@ -16,7 +17,7 @@ public class Intake
 	public enum RollerState
 	{
 		STOPPED(0, 0),
-		INTAKE(.7, 1),
+		INTAKE(.4, 1),
 		OUTTAKE(-.7, -1);
 		
 		public final double innerRollerPower;
@@ -50,6 +51,8 @@ public class Intake
 	
 	public void onPOVUpdate(POVValue newValue)
 	{
+		
+		Log.debug("Intake", "Listener Called");
 		switch(newValue.getDirectionValue())
 		{
 		case 0:
@@ -114,6 +117,8 @@ public class Intake
 
 		boolean in;
 		
+		long endTime;
+		
 		public CmdMoveRollers(int msec, boolean in)
 		{
 			super(msec / 1000.0);
@@ -133,7 +138,8 @@ public class Intake
 	    protected boolean isFinished()
 	    {
 	    	//wait for timeout
-	    	return false;
+	    	//return endTime < System.currentTimeMillis();
+	    	return isTimedOut();
 	    }
 
 	    protected void end()
@@ -143,7 +149,8 @@ public class Intake
 
 	    protected void interrupted()
 	    {
-	    	end();
+	    	setRollerState(RollerState.STOPPED);
+
 	    }
 	    
 	}
