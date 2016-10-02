@@ -1,6 +1,6 @@
 package org.team3128.main;
 
-import org.team3128.common.hardware.encoder.velocity.QuadratureEncoderLink;
+import org.team3128.common.hardware.encoder.both.QuadratureEncoder;
 import org.team3128.common.hardware.lights.PWMLights;
 import org.team3128.common.hardware.misc.Piston;
 import org.team3128.common.hardware.misc.TwoSpeedGearshift;
@@ -26,8 +26,8 @@ public class MainUnladenSwallowCompetition extends MainUnladenSwallow
 	{
 		super();
 		
-		leftDriveEncoder = new QuadratureEncoderLink(0,	1, 128, false);
-		rightDriveEncoder = new QuadratureEncoderLink(2, 3, 128, true);
+		leftDriveEncoder = new QuadratureEncoder(0,	1, 128, false);
+		rightDriveEncoder = new QuadratureEncoder(2, 3, 128, true);
 		
 		leftMotors = new MotorGroup();
 		leftMotors.addMotor(new Talon(1));

@@ -12,7 +12,7 @@ import org.team3128.autonomous.programs.StrongholdCompositeAuto;
 import org.team3128.autonomous.scorers.CmdScoreEncoders;
 import org.team3128.common.NarwhalRobot;
 import org.team3128.common.drive.TankDrive;
-import org.team3128.common.hardware.encoder.velocity.QuadratureEncoderLink;
+import org.team3128.common.hardware.encoder.both.QuadratureEncoder;
 import org.team3128.common.hardware.lights.LightsColor;
 import org.team3128.common.hardware.lights.PWMLights;
 import org.team3128.common.hardware.misc.Piston;
@@ -59,8 +59,8 @@ public abstract class MainUnladenSwallow extends NarwhalRobot
 	public MotorGroup innerRoller;
 	public MotorGroup winch;
 	
-	public QuadratureEncoderLink leftDriveEncoder;
-	public QuadratureEncoderLink rightDriveEncoder;
+	public QuadratureEncoder leftDriveEncoder;
+	public QuadratureEncoder rightDriveEncoder;
 	public PowerDistributionPanel powerDistPanel;
 	
 	public CANTalon backArmMotor;
