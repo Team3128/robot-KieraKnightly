@@ -7,8 +7,9 @@ import org.team3128.common.hardware.misc.TwoSpeedGearshift;
 import org.team3128.common.hardware.motor.MotorGroup;
 import org.team3128.mechanisms.Finger;
 
-import edu.wpi.first.wpilibj.CANTalon;
-import edu.wpi.first.wpilibj.CANTalon.FeedbackDevice;
+import com.ctre.CANTalon;
+import com.ctre.CANTalon.FeedbackDevice;
+
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Victor;

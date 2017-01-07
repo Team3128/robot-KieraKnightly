@@ -3,8 +3,9 @@ package org.team3128.mechanisms;
 import org.team3128.common.util.Log;
 import org.team3128.common.util.units.Angle;
 
-import edu.wpi.first.wpilibj.CANTalon;
-import edu.wpi.first.wpilibj.CANTalon.TalonControlMode;
+import com.ctre.CANTalon;
+import com.ctre.CANTalon.TalonControlMode;
+
 import edu.wpi.first.wpilibj.command.Command;
 
 public class Finger

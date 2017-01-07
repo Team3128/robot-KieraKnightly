@@ -133,7 +133,7 @@ public class Intake
 	    protected boolean isFinished()
 	    {
 	    	//wait for timeout
-	    	return false;
+	    	return isTimedOut();
 	    }
 
 	    protected void end()

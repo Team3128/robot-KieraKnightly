@@ -5,11 +5,11 @@ import org.team3128.common.hardware.lights.PWMLights;
 import org.team3128.common.hardware.misc.Piston;
 import org.team3128.common.hardware.misc.TwoSpeedGearshift;
 import org.team3128.common.hardware.motor.MotorGroup;
-import org.team3128.common.util.Log;
 import org.team3128.mechanisms.Finger;
 
-import edu.wpi.first.wpilibj.CANTalon;
-import edu.wpi.first.wpilibj.CANTalon.FeedbackDevice;
+import com.ctre.CANTalon;
+import com.ctre.CANTalon.FeedbackDevice;
+
 import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.Talon;
@@ -79,8 +79,7 @@ public class MainUnladenSwallowCompetition extends MainUnladenSwallow
 	{
 		super.constructHardware();
 		CameraServer camera = CameraServer.getInstance();
-		camera.setQuality(10);
-		camera.startAutomaticCapture("cam0");
+		camera.startAutomaticCapture(0).setResolution(480, 320);
 	}
 	
 	@Override
@@ -88,15 +87,6 @@ public class MainUnladenSwallowCompetition extends MainUnladenSwallow
 	{
 		super.teleopInit();
 		teleStart = System.currentTimeMillis();
-
-		
-		CameraServer cameraTele = CameraServer.getInstance();
-		cameraTele.setQuality(10);
-		if (!cameraTele.isAutoCaptureStarted()) {
-			cameraTele.startAutomaticCapture("cam0");
-			Log.debug("MainUnladenSwallowCompetition", "Restarted Camera");
-		}
-		Log.debug("MainUnladenSwallowCompetition", "Restarted Camera");
 
 	}
 	

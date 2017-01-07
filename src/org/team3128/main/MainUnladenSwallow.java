@@ -31,7 +31,8 @@ import org.team3128.mechanisms.Finger;
 import org.team3128.mechanisms.Intake;
 import org.team3128.testmainclasses.MainLightsTest;
 
-import edu.wpi.first.wpilibj.CANTalon;
+import com.ctre.CANTalon;
+
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PowerDistributionPanel;
